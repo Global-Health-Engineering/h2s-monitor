@@ -8,7 +8,7 @@
 - Bias: 0 V, R_load: 5–30 Ω
 - Response time: < 30 s
 **Form factor:** hand-held, battery-operated, on-board OLED display
-**Battery:** 1(2?)× 18650 Li-ion cell (3.0–4.2 V, ≈3000 mAh)
+**Battery:** 1(2?)× 18650 Li-ion cell (3.0–4.2 V, ≈3000 mAh), **charged in-circuit via USB-C, not user-replaceable**
 
 ---
 
@@ -64,25 +64,31 @@ Issues are ordered by priority.
 
 ### 2.4 Battery: 18650-specific changes
 
-The schematic currently uses a generic LiPo connector (`J2`, DF13-02) and a **BQ25185** charger (1 A, linear). Switching to a 1× 18650 cell changes several things:
+The cell is **charged in-circuit via the XIAO ESP32-C6's USB-C port** — the user never removes it. That removes a whole class of user-error problems (reverse insertion, key shorts, third-party cells) but introduces new ones (the cell *must* survive the device's full service life, and a fault inside the sealed enclosure must fail safely). The schematic already has the right charge path: **USB-C → VBUS → D2 → U1 BQ25185 → SYS / VBAT**. The remaining work is around charge rate, protection, and mounting.
 
 #### 2.4.1 Charger — keep BQ25185, but plan for slow charge
 
-**Problem.** A 1 A linear charger will charge a 3000 mAh 18650 in ≈3.5 h (0.33 C). That's acceptable, but linear chargers dissipate (VBUS − VBAT) × ICHG as heat — at 5 V in / 3.7 V cell / 1 A = 1.3 W in the IC. The BQ25185 is a small DFN; it will throttle on thermal limit.
+**Problem.** A 1 A linear charger will charge a 3000 mAh 18650 in ≈3.5 h (0.33 C). That's acceptable, but linear chargers dissipate (VBUS − VBAT) × ICHG as heat — at 5 V in / 3.7 V cell / 1 A = 1.3 W in the IC. The BQ25185 is a small DFN; inside a sealed hand-held enclosure with no airflow, it *will* throttle on thermal limit and the heat will warm the H2S cell, biasing readings during/after charging.
 
 **Action.**
-- **Option A (cheap, simple, slower):** keep BQ25185, set ICHG = 500 mA (cuts heat in half, ~6 h charge). Add thermal vias under the IC.
-- **Option B (faster, more board work):** replace with a switching charger — **BQ25895** (5 A, I²C-controlled) or **MP2632B** (combined charger + boost). Recommended if charge time matters for users in the field.
+- **Option A (cheap, simple, slower):** keep BQ25185, set ICHG = 500 mA (cuts dissipation to ~0.65 W, ~6 h charge). Add thermal vias under the IC and place it as far from the H2S sensor as possible.
+- **Option B (faster, cooler, more board work):** replace with a switching charger — **TI BQ25895** (5 A, I²C-controlled, ~90 % efficient) or **MP2632B** (combined charger + boost). Strongly recommended if (a) charge time matters in the field, or (b) the enclosure traps heat near the gas cell.
+- Either way: **inhibit measurements while charging** in firmware, or apply a temperature correction, since the AFE rail and the gas cell will both be warmer than ambient until the device cools down.
 
-#### 2.4.2 Holder, protection, fusing
+#### 2.4.2 Cell mounting and protection
 
-**Problem.** 18650 cells are user-replaceable; users *will* insert them backwards, short the contacts with keys, or use unprotected cells.
+**Problem.** A non-replaceable cell still has to be installed at assembly, retained mechanically, and protected against internal faults (over-discharge below 2.5 V, short circuit, over-current). The BQ25185 protects the *charge* side but does **not** protect the discharge side once the cell is connected to `SYS`.
 
 **Action.**
-- Use a **Keystone 1042** or **Keystone 1048** through-hole 18650 holder, oriented so the user can see the polarity marking on the PCB silkscreen.
-- Add a **resettable PTC fuse** (e.g., 2 A hold / 4 A trip, 0805) in series with the cell.
-- Add an **ideal-diode P-FET** for reverse polarity protection (e.g., **SiA923EDJ** or **DMP3098L** + a small reference). Even with a keyed holder, a backwards cell or a damaged contact can short the charger input.
-- Recommend (in documentation) **protected 18650 cells** that include their own over-discharge / over-current PCB. If users will be supplying their own cells, you cannot rely on this — design assuming an unprotected cell and add over-discharge protection on-board (the fuel gauge in 2.4.3 helps, plus a software cutoff at 3.0 V).
+- **Mounting** — pick one:
+  - **Soldered tabs** (spot-welded nickel strip on the cell, soldered to the PCB): cheapest, most compact, survives shock best. Standard for sealed instruments.
+  - **Through-hole holder** (e.g., **Keystone 1042/1048**): easier to assemble, allows technician replacement at end-of-life without rework.
+  - Either way, design so the cell sits *away* from the LMP91002, the BQ25185, and the H2S sensor (heat coupling biases the cell).
+- **Choose a known, good, unprotected cell at assembly time** — e.g., Panasonic NCR18650B, Samsung INR18650-30Q. Document the part number in the BOM; do not let the assembler substitute. Since the user never replaces the cell, you *can* assume the chemistry and the model.
+- **Add a discrete battery-protection IC** in series with the cell: **Seiko S-8261** or **Mitsumi MM3077** (over-charge / over-discharge / over-current / short-circuit cutoff) plus a dual N-FET (e.g., **AO8814**). This is the same circuit that's built into "protected" 18650 cells; since you're using bare cells you must add it on-board. Place it directly at the cell terminals.
+- **Resettable PTC fuse** (e.g., 2 A hold / 4 A trip, 0805) in series with the cell as a secondary fault-protection layer.
+- **Reverse-polarity protection is no longer needed** — the cell is permanently installed at one orientation. Save the part. (You can leave it for assembly-error protection if the cost is trivial.)
+- **Software low-voltage cutoff at 3.0 V** in firmware as a third layer; the protection IC's hardware cutoff (~2.4–2.5 V) is the safety net, not the primary mechanism.
 
 #### 2.4.3 Fuel gauge — add MAX17048
 
@@ -96,7 +102,7 @@ The schematic currently uses a generic LiPo connector (`J2`, DF13-02) and a **BQ
 
 ### 2.5 Power-on / power-off — add a soft power switch
 
-**Problem.** Currently the device is powered whenever a battery is inserted or USB is connected. Quiescent draw is the sum of (XIAO ESP32-C6 sleep current + BQ25185 quiescent + LMP91002 quiescent). For a hand-held with a user-replaceable cell, this means the cell drains in storage.
+**Problem.** Currently the device is powered whenever the cell is connected or USB is plugged in. Quiescent draw is the sum of (XIAO ESP32-C6 sleep current + BQ25185 quiescent + LMP91002 quiescent). With a sealed, non-replaceable cell, "the user just pulls the battery" is no longer an option — between uses the device sits on a shelf and the cell self-drains. If it discharges below the protection-IC cutoff (item 2.4.2), the device will appear bricked until charged again.
 
 **Action.**
 - Add a **soft latching power switch**: **TI TPS22916** (load switch) + a momentary push-button + a few resistors, or use a single-chip latch like **STMicro STM6601**.
@@ -150,12 +156,12 @@ The schematic currently uses a generic LiPo connector (`J2`, DF13-02) and a **BQ
 | U7 | Maxim MAX17048G+T10 | Fuel gauge | Replaces R8/R9 divider |
 | U8 | TI TPS22916 | Soft power switch | Driven by latching push-button |
 | U9 | Sensirion SHT41 *(optional)* | Temperature + humidity | I²C bus, near sensor |
-| Q3 | SiA923EDJ (or DMP3098L) | Reverse-polarity P-FET | Battery side |
+| U10 | Seiko S-8261 (or Mitsumi MM3077) | Battery protection IC | Over-charge / over-discharge / short-circuit |
+| Q3 | AO8814 (dual N-FET) | Switch element for U10 | At cell terminals |
 | F1 | 0805 PTC, 2 A hold | Resettable fuse | Series with battery |
-| D3 | NXP PESD3V3L4UG | TVS array on sensor lines | Place near J5 |
 | SW2 | Tactile, 4×4 mm | Second user button | Menu/back |
 | SW3 *(optional)* | Tactile, 4×4 mm | Third button or EC11 encoder | Up/down/select |
-| BH1 | Keystone 1042 or 1048 | 18650 holder | Through-hole, polarity on silk |
+| BH1 *(optional)* | Keystone 1042 or 1048 | 18650 holder | Or solder spot-welded tabs directly |
 | R, C | small passives | LDO bypass, ADC filter, etc. | ~10 parts of 0402/0603 |
 
 **Parts removed:** R8 (1 MΩ), R9 (510 kΩ) — replaced by MAX17048.
@@ -170,7 +176,8 @@ The schematic currently uses a generic LiPo connector (`J2`, DF13-02) and a **BQ
 - [ ] **I²C pull-ups (R14/R15, 4.7 kΩ)**: with the additions above the bus will have 5–6 devices. 4.7 kΩ is fine at 100 kHz; verify if you want 400 kHz Fast-mode.
 - [ ] **No power switch in series with battery** — see 2.5.
 - [ ] **Q1 PMOS gate**: confirm its gate is actively driven, not just pulled high. Otherwise it's always on and not really a load switch.
-- [ ] **Battery polarity** on `J2` matches the 18650 holder pin-out you'll specify.
+- [ ] **Battery polarity** on `J2` (or the soldered tabs / Keystone holder) matches the 18650 you'll mount, and the silkscreen shows it clearly for the assembler.
+- [ ] **Charge path verified for 18650 chemistry**: BQ25185 ICHG programming resistor sized for the chosen charge rate (item 2.4.1), termination 4.2 V — confirm it's not configured for 4.35 V high-voltage cells.
 
 ---
 
@@ -178,8 +185,8 @@ The schematic currently uses a generic LiPo connector (`J2`, DF13-02) and a **BQ
 
 In limited time, address in this order:
 
-1. **2.4 (battery: holder + fuse + reverse protection + fuel gauge)** — biggest functional impact for a hand-held with replaceable 18650 cells.
+1. **2.4 (battery: protection IC + fuse + fuel gauge + charge-rate decision)** — the cell is sealed inside the device for its full service life, so safe charge/discharge and reliable SoC reporting are non-negotiable.
 2. **2.1 (LDO) + 2.2 (ADS1115)** — required to actually meet 3 ppm resolution.
-3. **2.6 + 2.7 (verify BQ25185 STAT/PG and LMP91002 MENB are on GPIOs)** — likely just a wiring fix on the existing schematic; MENB also unlocks low-power standby.
-4. **2.5 (soft power switch)** — quality-of-life, but important for storage/runtime with user-replaceable cells.
+3. **2.6 + 2.7 (verify BQ25185 STAT/PG and LMP91002 MENB are on GPIOs)** — likely just a wiring fix on the existing schematic; MENB also unlocks low-power standby, which matters more now that the cell can't be pulled in storage.
+4. **2.5 (soft power switch)** — important for shelf-storage of a sealed device; without it the cell can self-drain below the protection-IC cutoff.
 5. **2.8 (second button) + 2.9 (temperature compensation)** — UX and accuracy refinements.
