@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "H2S_Sensor")(type "KiCad")(uri "/Users/flurin/Documents/KiCad/easyeda2kicad/easyeda2kicad.pretty")(options "")(descr ""))
+)
