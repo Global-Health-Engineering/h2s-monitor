@@ -6,8 +6,8 @@ PCB schematic and layout files, and CAD models for the enclosure and gas flow ch
 
 ```
 design/
-├── pcb/            # KiCad project files and JLCPCB production files
-└── case_CAD/       # STL files for 3D-printed enclosure and flow chamber
+├── pcb/
+└── case_CAD/
 ```
 
 ## PCB (`pcb/`)

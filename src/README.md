@@ -6,7 +6,7 @@ Firmware and software developed for the H2S sensor system.
 
 ```
 src/
-└── firmware/       # Embedded firmware for the Seeed XIAO ESP32-C6
+└── firmware/
 ```
 
 ## `firmware/`

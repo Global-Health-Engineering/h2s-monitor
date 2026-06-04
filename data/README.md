@@ -6,9 +6,9 @@ This directory contains all measurement data collected during development and te
 
 ```
 data/
-├── raw_data/       # Unprocessed sensor output as logged during measurements
-├── derived_data/   # Processed or transformed data produced by analysis scripts
-└── metadata/       # Codebook and data dictionary describing all variables
+├── raw_data/
+├── derived_data/
+└── metadata/
 ```
 
 ## Data Format

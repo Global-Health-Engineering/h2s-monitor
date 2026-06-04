@@ -6,8 +6,8 @@ All hardware design files for the H2S sensor system, including the custom PCB an
 
 ```
 hardware/
-├── design/     # PCB design files (KiCad) and CAD models (STL)
-└── testing/    # Hardware testing documentation and results
+├── design/
+└── testing/
 ```
 
 ## System Overview

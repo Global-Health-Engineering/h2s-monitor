@@ -32,11 +32,11 @@ The developed system integrates a three-electrode electrochemical H2S sensor int
 ## Repository Structure
 
 ```
-├── analysis/       # Python analysis scripts
-├── data/           # Raw and derived measurement data
-├── docs/           # Reports and presentation slides
-├── grading/        # Grading rubric
-├── hardware/       # PCB design files and CAD models
-├── media/          # Photos and videos of the device
-└── src/            # Firmware source code
+├── analysis/
+├── data/
+├── docs/
+├── grading/
+├── hardware/
+├── media/
+└── src/
 ```
