@@ -1,0 +1,92 @@
+.
+├── analysis
+│   ├── baseline.py
+│   └── README.md
+├── data
+│   ├── derived_data
+│   │   └── README.md
+│   ├── metadata
+│   │   └── README.md
+│   ├── raw_data
+│   │   ├── baseline_stability
+│   │   │   └── h2s_20260601_115100.csv
+│   │   └── README.md
+│   └── README.md
+├── docs
+│   ├── reports
+│   │   ├── Gantt_Chart.xlsx
+│   │   ├── Proposal_H2S_sensor_Flurin_Vital.docx
+│   │   ├── Proposal_H2S_sensor_Flurin_Vital.pdf
+│   │   └── README.md
+│   ├── slides
+│   │   └── README.md
+│   └── README.md
+├── grading
+│   └── README.md
+├── hardware
+│   ├── design
+│   │   ├── case_CAD
+│   │   │   ├── Case
+│   │   │   │   ├── Final
+│   │   │   │   │   ├── Case_Bottom - Part 1.stl
+│   │   │   │   │   └── Case_Top - Part 1.stl
+│   │   │   │   ├── V1
+│   │   │   │   │   ├── Case_Bottom - Part 1.stl
+│   │   │   │   │   └── Case_Top - Part 1.stl
+│   │   │   │   ├── V2
+│   │   │   │   │   ├── Case_Bottom - Part 1.stl
+│   │   │   │   │   └── Case_Top - Part 1.stl
+│   │   │   │   ├── V3
+│   │   │   │   │   ├── Case_Bottom - Part 1.stl
+│   │   │   │   │   └── Case_Top - Part 1.stl
+│   │   │   │   ├── V4
+│   │   │   │   │   ├── Case_Bottom - Part 1.stl
+│   │   │   │   │   ├── Case_Top - Part 1.stl
+│   │   │   │   │   ├── Pump_Lock - Part 1.stl
+│   │   │   │   │   └── Pump_Mount - Part 1.stl
+│   │   │   │   └── V5
+│   │   │   │       └── Case_Top - Part 1.stl
+│   │   │   └── Flow_Chamber
+│   │   │       ├── Flow_Chamber - Part 1_final.stl
+│   │   │       ├── Flow_Chamber - Part 1_V1.stl
+│   │   │       ├── Flow_Chamber - Part 1_V2.stl
+│   │   │       ├── Flow_Chamber - Part 1_V3.stl
+│   │   │       ├── Flow_Chamber - Part 1_V4.stl
+│   │   │       └── Flow_Chamber - Part 1_V5.stl
+│   │   ├── pcb
+│   │   │   ├── H2S_Sensor-backups
+│   │   │   ├── H2S_Sensor.kicad_pcb
+│   │   │   ├── H2S_Sensor.kicad_prl
+│   │   │   ├── H2S_Sensor.kicad_pro
+│   │   │   ├── H2S_Sensor.kicad_sch
+│   │   │   ├── jlcpcb
+│   │   │   ├── PCB_Versions
+│   │   │   └── production
+│   │   └── README.md
+│   ├── testing
+│   │   └── README.md
+│   └── README.md
+├── media
+│   ├── photo
+│   │   ├── CAD_design.png
+│   │   ├── device_closed.jpeg
+│   │   ├── device_open.jpeg
+│   │   ├── PCB_3D.png
+│   │   ├── PCB.png
+│   │   ├── Schematic.pdf
+│   │   └── README.md
+│   ├── video
+│   │   └── README.md
+│   └── README.md
+├── src
+│   ├── firmware
+│   │   ├── include
+│   │   ├── lib
+│   │   ├── src
+│   │   ├── test
+│   │   ├── tools
+│   │   ├── CMakeLists.txt
+│   │   └── platformio.ini
+│   └── README.md
+├── README.md
+└── tree.txt
