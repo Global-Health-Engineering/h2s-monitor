@@ -1,6 +1,2 @@
-/.quarto/
-node_modules/
+.DS_Store
 **/.DS_Store
-.Rhistory
-README.html
-README_files/
